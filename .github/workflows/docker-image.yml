@@ -1,15 +1,19 @@
-name: Docker Image CI
+name: Publish Docker Image
 
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    paths-ignore:
+      - 'deploy/**'
+  release:
+    types:
+      - published
 
 jobs:
 
   build:
 
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
     runs-on: ubuntu-latest
 
     steps:
@@ -22,3 +26,49 @@ jobs:
     - name: Docker Push
       run: |
         docker push ghcr.io/kfirdado/nodedemo:$GITHUB_SHA
+
+  update-dev-image:
+    runs-on: ubuntu-latest
+    if: contains(github.ref, 'heads')
+    needs:
+    - build
+    steps:
+    - uses: imranismail/setup-kustomize@v1
+      with:
+        kustomize-version: 3.8.6
+    - run: git clone https://${REPO_TOKEN}@github.com/kfirdado/nodedemo.git .
+      env:
+        REPO_TOKEN: ${{secrets.REPO_TOKEN}}
+    - run: kustomize edit set image ghcr.io/kfirdado/nodedemo:sha-$(git rev-parse --short $GITHUB_SHA)
+      working-directory: ./deploy/overlays/dev
+    - run: git add .
+    - run: |
+        git config user.email "$EMAIL"
+        git config user.name "$GITHUB_ACTOR"
+      env:
+        EMAIL: ${{secrets.EMAIL}}
+    - run: git commit -m "Set dev image tag to short sha"
+    - run: git push
+
+  update-prd-image:
+    runs-on: ubuntu-latest
+    if: contains(github.ref, 'tags')
+    needs:
+    - build
+    steps:
+    - uses: imranismail/setup-kustomize@v1
+      with:
+        kustomize-version: 3.8.6
+    - run: git clone https://${REPO_TOKEN}@github.com/kfirdado/nodedemo.git .
+      env:
+        REPO_TOKEN: ${{secrets.REPO_TOKEN}}
+    - run: kustomize edit set image ghcr.io/kfirdado/nodedemo:${GITHUB_REF#refs/*/}
+      working-directory: ./deploy/overlays/prd
+    - run: git add .
+    - run: |
+        git config user.email "$EMAIL"
+        git config user.name "$GITHUB_ACTOR"
+      env:
+        EMAIL: ${{secrets.EMAIL}}
+    - run: git commit -m "Set prd image tag to latest tag"
+    - run: git push
