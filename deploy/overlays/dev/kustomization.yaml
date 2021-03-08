@@ -12,4 +12,4 @@ replicas:
   name: nodedemo
 images:
 - name: ghcr.io/kfirdado/nodedemo
-  newTag: sha-40f4c9b
+  newTag: sha-586c54e
