@@ -49,8 +49,6 @@ jobs:
         EMAIL: ${{secrets.EMAIL}}
     - run: git commit -m "Set dev image tag to short sha"
     - run: git push
-      env:
-        GITHUB_TOKEN: ${{secrets.REPO_TOKEN}}
 
   update-prd-image:
     runs-on: ubuntu-latest
@@ -74,6 +72,6 @@ jobs:
         EMAIL: ${{secrets.EMAIL}}
     - run: git commit -m "Set prd image tag to latest tag"
     - run: git push
-      env:
-        GITHUB_TOKEN: ${{secrets.REPO_TOKEN}}
+
+
 
