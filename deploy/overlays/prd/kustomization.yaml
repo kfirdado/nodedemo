@@ -27,4 +27,4 @@ replicas:
   name: nodedemo
 images:
 - name: ghcr.io/kfirdado/nodedemo
-  newTag: 0.0.1
+  newTag: 0.0.5
