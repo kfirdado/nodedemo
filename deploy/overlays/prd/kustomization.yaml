@@ -1,0 +1,30 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: nodedemo-prd
+nameSuffix: -prd
+resources:
+- ../../bases/nodedemo
+- namespace.yaml
+transformers:
+- labels.yaml
+patchesStrategicMerge:
+- |
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: nodedemo
+  spec:
+    template:
+      spec:
+        containers:
+          - name: nodedemo
+            resources:
+              requests:
+                cpu: 150m
+                memory: 150Mi
+replicas:
+- count: 3
+  name: nodedemo
+images:
+- name: ghcr.io/kfirdado/nodedemo
+  newTag: 0.0.1
